@@ -1,0 +1,948 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Premium dark cocktail bar inspired color palette */
+  --background-dark: #121212;
+  --background-surface: #1e1e1e;
+  --background-elevated: #2a2a2a;
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --text-tertiary: rgba(255, 255, 255, 0.5);
+  --accent-primary: #d4b483; /* Golden amber for whiskey tones */
+  --accent-secondary: #7b5e57; /* Warm copper/mahogany */
+  --accent-tertiary: #c75146; /* Red bitters */
+  --accent-quaternary: #618985; /* Blue-green for gin botanicals */
+  --glass-highlight: rgba(255, 255, 255, 0.05);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-shadow: rgba(0, 0, 0, 0.5);
+  
+  /* Old variables for compatibility */
+  --foreground: var(--text-primary);
+  --background: var(--background-dark);
+  --accent: #9ca3af;
+  --primary: var(--accent-primary);
+  --primary-hover: #c19a65;
+  --user-message: var(--accent-primary);
+  --assistant-message-light: var(--background-elevated);
+  --assistant-message-dark: var(--background-elevated);
+}
+
+/* Remove light mode media query - we're enforcing dark theme */
+
+body {
+  color: var(--text-primary);
+  background: var(--background-dark);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  background-image: 
+    radial-gradient(circle at 25% 25%, rgba(118, 75, 162, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 75% 75%, rgba(206, 152, 68, 0.1) 0%, transparent 50%);
+  min-height: 100vh;
+}
+
+/* Enhanced styling for dark theme */
+.dark {
+  color-scheme: dark;
+}
+
+.dark body {
+  background-color: var(--background-dark);
+  color: var(--text-primary);
+}
+
+/* Enhance the cocktail ambience with some additional styling */
+.cocktail-ambience {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--background-dark);
+  background-image: 
+    radial-gradient(circle at 15% 25%, rgba(118, 75, 162, 0.15) 0%, transparent 40%),
+    radial-gradient(circle at 85% 75%, rgba(206, 152, 68, 0.15) 0%, transparent 40%),
+    radial-gradient(circle at 50% 50%, rgba(30, 30, 30, 1) 0%, rgba(18, 18, 18, 1) 100%);
+  background-attachment: fixed;
+}
+
+/* Glass morphism effect for containers - now as a regular CSS class */
+.glass-panel {
+  background: rgba(30, 30, 30, 0.6);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  box-shadow: 0 4px 30px var(--glass-shadow);
+}
+
+.dark .glass-panel {
+  background: rgba(30, 30, 30, 0.6);
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: var(--text-primary);
+}
+
+h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+h2 {
+  font-size: 2rem;
+  margin-bottom: 0.75rem;
+}
+
+p {
+  font-weight: 400;
+  line-height: 1.7;
+}
+
+/* Chat container */
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  height: 70vh;
+  max-height: 700px;
+  min-height: 400px;
+  overflow: hidden;
+}
+
+/* Updated message bubbles */
+.message-bubble {
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+  border-radius: 16px;
+  position: relative;
+  max-width: 85%;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+/* User message */
+.user-message {
+  align-self: flex-end;
+  background: linear-gradient(135deg, var(--accent-primary) 0%, #c19a65 100%);
+  color: #1a1a1a;
+  border-bottom-right-radius: 4px;
+  margin-left: auto;
+}
+
+.user-message .message-time {
+  text-align: right;
+  font-size: 0.75rem;
+  opacity: 0.7;
+  margin-top: 0.25rem;
+}
+
+/* Assistant message */
+.assistant-message {
+  align-self: flex-start;
+  background: var(--background-elevated);
+  color: var(--text-primary);
+  border-bottom-left-radius: 4px;
+  margin-right: auto;
+  border: 1px solid var(--glass-border);
+}
+
+@media (prefers-color-scheme: dark) {
+  .assistant-message {
+    background: rgba(42, 42, 42, 0.7);
+    backdrop-filter: blur(4px);
+  }
+}
+
+.assistant-message .message-time {
+  text-align: left;
+  font-size: 0.75rem;
+  opacity: 0.7;
+  margin-top: 0.25rem;
+}
+
+/* Animations */
+@keyframes bubble {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateY(-100vh) scale(1.5);
+    opacity: 0;
+  }
+}
+
+@keyframes slideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes messageIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.95) translateY(5px);
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Typing indicator animation */
+.typing-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.typing-indicator span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.6);
+  display: inline-block;
+  animation: typing 1.4s infinite ease-in-out both;
+}
+
+.typing-indicator span:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.typing-indicator span:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+@keyframes typing {
+  0%, 80%, 100% { 
+    transform: scale(0.6);
+    opacity: 0.5;
+  }
+  40% { 
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Fade-in animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+/* Button styling */
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent-primary) 0%, #c19a65 100%);
+  color: #1a1a1a;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  text-align: center;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* Header */
+.header-bg {
+  background: linear-gradient(to right, var(--background-surface), var(--background-elevated));
+  border-bottom: 1px solid var(--glass-border);
+}
+
+/* Input styling */
+.input-area {
+  background: var(--background-surface);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 1rem;
+  transition: all 0.3s ease;
+}
+
+.input-area:focus-within {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px rgba(212, 180, 131, 0.2);
+}
+
+/* Custom scrollbar */
+.scrollbar-themed::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollbar-themed::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.scrollbar-themed::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.scrollbar-themed::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Prevent blue highlight on mobile */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Shimmer effect */
+.shimmer {
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.05) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -100% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Animation classes */
+.animate-fadeOut {
+  animation: fadeOut 0.3s ease-out forwards;
+}
+
+.animate-messageIn {
+  animation: messageIn 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+.animate-slideIn {
+  animation: slideIn 0.3s ease-out forwards;
+}
+
+.animate-pulse-slow {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* Recipe Styling for Enhanced Visualization */
+.cocktail-recipe-container {
+  max-width: 100%;
+}
+
+/* Cocktail Title */
+.cocktail-title {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(212, 180, 131, 0.3);
+}
+
+.cocktail-title .cocktail-icon {
+  font-size: 1.5rem;
+  margin-right: 0.5rem;
+}
+
+.cocktail-title h3 {
+  font-family: var(--font-playfair);
+  font-weight: 600;
+  font-size: 1.25rem;
+  color: var(--accent-primary);
+  margin: 0;
+}
+
+/* Recipe Sections */
+.recipe-section {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.section-icon {
+  font-size: 1.125rem;
+  margin-right: 0.5rem;
+  opacity: 0.9;
+}
+
+.section-header h4 {
+  font-weight: 600;
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0;
+}
+
+/* Ingredients List */
+.ingredients-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding-left: 0.5rem;
+}
+
+.ingredient-item {
+  display: flex;
+  align-items: center;
+  padding: 0.25rem 0;
+  transition: transform 0.2s ease;
+}
+
+.ingredient-item:hover {
+  transform: translateX(4px);
+}
+
+.ingredient-icon {
+  font-size: 1rem;
+  margin-right: 0.5rem;
+  opacity: 0.9;
+}
+
+.ingredient-highlight {
+  color: var(--accent-primary);
+  font-weight: 500;
+}
+
+/* Instructions List */
+.instructions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-left: 0.5rem;
+}
+
+.instruction-step {
+  display: flex;
+  margin-bottom: 0.25rem;
+  position: relative;
+}
+
+.step-number {
+  font-weight: 600;
+  color: var(--accent-primary);
+  margin-right: 0.75rem;
+  font-size: 0.875rem;
+  background: rgba(212, 180, 131, 0.2);
+  height: 1.5rem;
+  width: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.step-text {
+  flex: 1;
+  line-height: 1.5;
+}
+
+/* Additional Sections */
+.garnish-section, .glass-section, .note-section {
+  display: flex;
+  align-items: center;
+  margin-top: 0.75rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.garnish-icon, .glass-icon, .note-icon {
+  font-size: 1rem;
+  margin-right: 0.5rem;
+}
+
+.garnish-text, .glass-text, .note-text {
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+/* Animated Ingredient Icons */
+.ingredient-icon {
+  display: inline-block;
+  transform-origin: center;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.ingredient-item:hover .ingredient-icon {
+  transform: scale(1.2) rotate(5deg);
+}
+
+/* Enhanced Recipe Backgrounds and Effects */
+.cocktail-recipe-container {
+  position: relative;
+}
+
+.cocktail-recipe-container::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  right: -10px;
+  width: 60px;
+  height: 60px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24' fill='none' stroke='rgba(212, 180, 131, 0.2)' stroke-width='1'%3E%3Cpath d='M7.5 7.5l2-2M12 6l-1-1M18 12l1-1M17.5 7.5l-2-2M16 16l-2 2M8 12L6 13M8.5 16.5l2 2M12 18l1 1'%3E%3C/path%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: bottom right;
+  opacity: 0.5;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Cocktail Loading Animation */
+.cocktail-loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem;
+}
+
+.cocktail-glass {
+  position: relative;
+  width: 60px;
+  height: 75px;
+  background: rgba(255, 255, 255, 0.1);
+  border-bottom-left-radius: 15px;
+  border-bottom-right-radius: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+  transform-origin: bottom center;
+  animation: shake 3s ease-in-out infinite;
+}
+
+.cocktail-glass::before {
+  content: '';
+  position: absolute;
+  width: 80px;
+  height: 15px;
+  background: rgba(255, 255, 255, 0.15);
+  top: -10px;
+  left: -10px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 0 5px rgba(255, 255, 255, 0.1);
+}
+
+.cocktail-glass::after {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  bottom: -10px;
+  left: 20px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.cocktail-liquid {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 0%;
+  background: linear-gradient(to bottom, var(--accent-tertiary), var(--accent-primary));
+  animation: pour 2s ease-out forwards, colorChange 8s infinite alternate;
+  opacity: 0.9;
+}
+
+.glass-shine {
+  position: absolute;
+  top: 5px;
+  right: 10px;
+  width: 8px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 10px;
+  transform: rotate(-20deg);
+  animation: shimmerHighlight 3s infinite;
+}
+
+.cocktail-bubbles {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 60%;
+  overflow: hidden;
+}
+
+.bubble {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  animation: bubble 2s ease-in infinite;
+  opacity: 0;
+}
+
+.bubble:nth-child(1) {
+  width: 8px;
+  height: 8px;
+  left: 10px;
+  bottom: 0;
+  animation-delay: 0.2s;
+}
+
+.bubble:nth-child(2) {
+  width: 6px;
+  height: 6px;
+  left: 30px;
+  bottom: 0;
+  animation-delay: 0.8s;
+}
+
+.bubble:nth-child(3) {
+  width: 10px;
+  height: 10px;
+  left: 45px;
+  bottom: 0;
+  animation-delay: 0.4s;
+}
+
+.bubble:nth-child(4) {
+  width: 5px;
+  height: 5px;
+  left: 20px;
+  bottom: 0;
+  animation-delay: 1.2s;
+}
+
+.bubble:nth-child(5) {
+  width: 7px;
+  height: 7px;
+  left: 40px;
+  bottom: 0;
+  animation-delay: 0.6s;
+}
+
+@keyframes colorChange {
+  0% { background: linear-gradient(to bottom, var(--accent-tertiary), var(--accent-primary)); }
+  33% { background: linear-gradient(to bottom, var(--accent-quaternary), var(--accent-secondary)); }
+  66% { background: linear-gradient(to bottom, var(--accent-secondary), var(--accent-tertiary)); }
+  100% { background: linear-gradient(to bottom, var(--accent-primary), var(--accent-quaternary)); }
+}
+
+@keyframes shake {
+  0% { transform: rotate(0deg); }
+  20% { transform: rotate(5deg); }
+  40% { transform: rotate(-5deg); }
+  60% { transform: rotate(3deg); }
+  80% { transform: rotate(-3deg); }
+  100% { transform: rotate(0deg); }
+}
+
+@keyframes shimmerHighlight {
+  0% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+  100% { opacity: 0.4; }
+}
+
+/* Animated dots for loading */
+.dot-1, .dot-2, .dot-3 {
+  animation: dotAnimation 1.4s infinite;
+  animation-fill-mode: both;
+  font-size: 1.2em;
+  opacity: 0;
+}
+
+.dot-1 {
+  animation-delay: 0.2s;
+}
+
+.dot-2 {
+  animation-delay: 0.4s;
+}
+
+.dot-3 {
+  animation-delay: 0.6s;
+}
+
+@keyframes dotAnimation {
+  0% { opacity: 0; }
+  30% { opacity: 1; }
+  60% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* Responsive background bubbles */
+.cocktail-bubble {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(2px);
+  animation: floatUp linear forwards;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.1), 
+              0 0 15px rgba(212, 180, 131, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transform-origin: center;
+}
+
+.bubble-content {
+  opacity: 0.4;
+  animation: rotate 10s linear infinite, pulse 4s ease-in-out infinite;
+  filter: blur(0.5px);
+  transform-origin: center;
+}
+
+@keyframes floatUp {
+  0% {
+    transform: translateY(0) rotate(0deg) scale(1);
+    opacity: 0.1;
+  }
+  10% {
+    opacity: 0.3;
+  }
+  90% {
+    opacity: 0.2;
+  }
+  100% {
+    transform: translateY(-100vh) rotate(360deg) scale(0.5);
+    opacity: 0;
+  }
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(0.95);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.05);
+  }
+}
+
+/* Welcome Screen Animations */
+.welcome-icon {
+  position: relative;
+  perspective: 1000px;
+  transform-style: preserve-3d;
+  animation: floatIcon 3s ease-in-out infinite;
+}
+
+.cocktail-glass-icon {
+  transform-style: preserve-3d;
+  animation: rotateGlass 8s linear infinite;
+}
+
+.cocktail-glass-icon .glass {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  clip-path: polygon(20% 0%, 80% 0%, 100% 20%, 100% 100%, 0% 100%, 0% 20%);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.cocktail-glass-icon .liquid {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 60%;
+  background: linear-gradient(45deg, var(--accent-quaternary), var(--accent-tertiary));
+  clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
+  animation: wave 2s ease-in-out infinite alternate;
+}
+
+.cocktail-glass-icon .bubbles {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 60%;
+  overflow: hidden;
+}
+
+.cocktail-glass-icon .bubble {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 50%;
+  animation: welcomeBubble 2s ease-in infinite;
+}
+
+.cocktail-glass-icon .bubble:nth-child(1) {
+  width: 8px;
+  height: 8px;
+  left: 20%;
+  bottom: 0;
+  animation-delay: 0.2s;
+}
+
+.cocktail-glass-icon .bubble:nth-child(2) {
+  width: 6px;
+  height: 6px;
+  left: 50%;
+  bottom: 0;
+  animation-delay: 0.8s;
+}
+
+.cocktail-glass-icon .bubble:nth-child(3) {
+  width: 10px;
+  height: 10px;
+  left: 70%;
+  bottom: 0;
+  animation-delay: 0.5s;
+}
+
+@keyframes floatIcon {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes rotateGlass {
+  0% {
+    transform: rotateY(0deg);
+  }
+  100% {
+    transform: rotateY(360deg);
+  }
+}
+
+@keyframes wave {
+  0% {
+    clip-path: polygon(0% 15%, 20% 10%, 40% 15%, 60% 20%, 80% 15%, 100% 10%, 100% 100%, 0% 100%);
+  }
+  100% {
+    clip-path: polygon(0% 10%, 20% 15%, 40% 20%, 60% 15%, 80% 10%, 100% 15%, 100% 100%, 0% 100%);
+  }
+}
+
+@keyframes welcomeBubble {
+  0% {
+    transform: translateY(0) scale(0.5);
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(-40px) scale(1.2);
+    opacity: 0;
+  }
+}
+
+/* Responsive improvements */
+@media (max-width: 640px) {
+  .message-bubble {
+    max-width: 90%;
+    padding: 0.75rem;
+  }
+  
+  .step-number {
+    font-size: 0.75rem;
+    height: 1.25rem;
+    width: 1.25rem;
+    margin-right: 0.5rem;
+  }
+  
+  .ingredient-item {
+    padding: 0.125rem 0;
+  }
+  
+  .cocktail-title h3 {
+    font-size: 1.125rem;
+  }
+  
+  .section-header h4 {
+    font-size: 0.875rem;
+  }
+  
+  .instruction-step {
+    margin-bottom: 0.75rem;
+  }
+  
+  .ingredient-icon, .section-icon {
+    font-size: 0.875rem;
+  }
+  
+  .ingredient-item:hover {
+    transform: translateX(2px);
+  }
+  
+  .typing-indicator span {
+    width: 6px;
+    height: 6px;
+    margin: 0 1px;
+  }
+}
+
+/* Accessibility improvements */
+:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
