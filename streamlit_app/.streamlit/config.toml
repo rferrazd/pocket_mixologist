@@ -1,0 +1,10 @@
+[theme]
+primaryColor = "#8B0000"  # Deep red
+backgroundColor = "#1E1E1E"  # Dark background
+secondaryBackgroundColor = "#2D2D2D"  # Slightly lighter dark
+textColor = "#F0F0F0"  # Light text
+font = "sans serif"  # Modern sans-serif font
+
+[server]
+enableXsrfProtection = true
+enableCORS = false 
