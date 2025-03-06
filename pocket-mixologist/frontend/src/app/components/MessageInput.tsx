@@ -90,56 +90,8 @@ const MessageInput: React.FC<MessageInputProps> = ({
     }
   };
   
-  const handleSuggestionClick = (suggestion: string) => {
-    setMessage(suggestion);
-    
-    // Auto-adjust height based on content
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-      const newHeight = Math.min(
-        Math.max(textareaRef.current.scrollHeight, 56), 
-        150
-      );
-      textareaRef.current.style.height = `${newHeight}px`;
-      textareaRef.current.focus();
-    }
-  };
-  
-  // Cocktail idea suggestions to show when input is empty
-  const suggestions = placeholderOptions || [
-    "What's a good rum cocktail?",
-    "I'd like something refreshing with gin",
-    "Can you suggest a whiskey drink?",
-    "I want something non-alcoholic"
-  ];
-  
-  // Simplified suggestions for mobile
-  const mobileSuggestions = placeholderOptions || [
-    "Rum cocktail?",
-    "Refreshing gin drink?",
-    "Whiskey recommendation?"
-  ];
-  
-  // Use appropriate suggestions based on screen size
-  const activeSuggestions = isMobile ? mobileSuggestions : suggestions;
-  
   return (
     <div className="input-area border-t border-white/10 bg-mixology-elevated/50 backdrop-blur-md p-3 md:p-4">
-      {!message && !disabled && (
-        <div className="suggestion-chips flex flex-wrap gap-2 mb-3 transition-opacity duration-300">
-          {activeSuggestions.map((suggestion, index) => (
-            <button
-              key={index}
-              onClick={() => handleSuggestionClick(suggestion)}
-              className="text-xs md:text-sm bg-mixology-elevated/90 hover:bg-mixology-elevated text-white/70 hover:text-white/90 px-3 py-1 rounded-full transition-all duration-300 hover:scale-105 active:scale-95 border border-white/10"
-              aria-label={`Suggestion: ${suggestion}`}
-            >
-              {suggestion}
-            </button>
-          ))}
-        </div>
-      )}
-      
       <form onSubmit={handleSubmit} className="flex items-end gap-2">
         <div 
           className={`relative flex-1 transition-all duration-300 rounded-xl overflow-hidden border ${

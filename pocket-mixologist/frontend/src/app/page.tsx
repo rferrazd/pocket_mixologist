@@ -1,10 +1,14 @@
 "use client";
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Chat from './components/Chat';
 
 export default function Home() {
   const [mounted, setMounted] = useState(false);
+  // Show landing page first
+  const [showChat, setShowChat] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     setMounted(true);
@@ -61,6 +65,10 @@ export default function Home() {
       bubble.remove();
     }, (duration + delay) * 1000);
   };
+
+  const handleStartClick = () => {
+    setShowChat(true);
+  };
   
   if (!mounted) return null;
   
@@ -74,18 +82,52 @@ export default function Home() {
       
       {/* Main content */}
       <div className="w-full max-w-4xl px-4 md:px-6 py-4 md:py-8 z-10 relative">
-        <header className="mb-6 text-center">
-          <h1 className="text-2xl md:text-4xl font-display font-semibold mb-2 text-white">
-            <span className="text-mixology-whiskey">Pocket</span> Mixologist
-          </h1>
-          <p className="text-white/60 max-w-md mx-auto text-sm md:text-base">
-            Your personal cocktail expert. Describe your preferences and get perfectly crafted drink recommendations.
-          </p>
-        </header>
+        {showChat ? (
+          <Chat />
+        ) : (
+          <div className="landing-page flex flex-col items-center justify-center text-center py-12">
+            <div className="welcome-icon mb-8">
+              <div className="cocktail-glass-icon"></div>
+            </div>
+            
+            <h1 className="text-4xl md:text-6xl font-display font-semibold mb-4 text-white">
+              <span className="text-mixology-whiskey">Pocket</span> Mixologist
+            </h1>
+            
+            <p className="text-white/70 max-w-lg mx-auto text-lg mb-10 leading-relaxed">
+              Your personal cocktail expert. Tell us your preferences and we'll craft the perfect drink recommendation just for you.
+            </p>
+            
+            <button 
+              onClick={handleStartClick}
+              className="px-8 py-4 bg-mixology-whiskey hover:bg-mixology-whiskey/90 text-mixology-dark text-lg font-medium rounded-full transition-all shadow-lg hover:shadow-xl transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-mixology-whiskey/50 backdrop-blur-sm"
+            >
+              Craft Your Cocktail
+            </button>
+            
+            <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-3xl mx-auto">
+              <div className="feature-card bg-black/20 backdrop-blur-sm border border-white/10 rounded-xl p-5 hover:border-mixology-whiskey/30 transition-all">
+                <div className="text-3xl mb-3">🍹</div>
+                <h3 className="text-white font-medium text-lg mb-2">Personalized Recommendations</h3>
+                <p className="text-white/60 text-sm">Get drink suggestions tailored to your unique taste preferences</p>
+              </div>
+              
+              <div className="feature-card bg-black/20 backdrop-blur-sm border border-white/10 rounded-xl p-5 hover:border-mixology-whiskey/30 transition-all">
+                <div className="text-3xl mb-3">📝</div>
+                <h3 className="text-white font-medium text-lg mb-2">Detailed Recipes</h3>
+                <p className="text-white/60 text-sm">Full ingredient lists and step-by-step mixing instructions</p>
+              </div>
+              
+              <div className="feature-card bg-black/20 backdrop-blur-sm border border-white/10 rounded-xl p-5 hover:border-mixology-whiskey/30 transition-all">
+                <div className="text-3xl mb-3">💬</div>
+                <h3 className="text-white font-medium text-lg mb-2">Interactive Experience</h3>
+                <p className="text-white/60 text-sm">Chat naturally about what you're in the mood for</p>
+              </div>
+            </div>
+          </div>
+        )}
         
-        <Chat />
-        
-        <footer className="mt-6 text-center text-white/40 text-xs">
+        <footer className="mt-10 text-center text-white/40 text-xs">
           <p className="mb-1">Powered by LangGraph and Next.js</p>
         </footer>
       </div>
