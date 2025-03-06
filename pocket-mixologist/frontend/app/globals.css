@@ -2,40 +2,42 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: 0 0% 0%;
-  --foreground: 0 0% 100%;
-  --card: 0 0% 11%;
-  --card-foreground: 0 0% 100%;
-  --popover: 0 0% 11%;
-  --popover-foreground: 0 0% 100%;
-  --primary: 340 50% 55%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 150 30% 25%;
-  --secondary-foreground: 0 0% 100%;
-  --muted: 0 0% 15%;
-  --muted-foreground: 0 0% 70%;
-  --accent: 340 50% 55%;
-  --accent-foreground: 0 0% 100%;
-  --destructive: 0 62.8% 30.6%;
-  --destructive-foreground: 0 0% 100%;
-  --border: 0 0% 15%;
-  --input: 0 0% 15%;
-  --ring: 340 50% 55%;
+@layer base {
+  :root {
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+    --card: 0 0% 11%;
+    --card-foreground: 0 0% 100%;
+    --popover: 0 0% 11%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 340 50% 55%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 150 30% 25%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 70%;
+    --accent: 340 50% 55%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 15%;
+    --input: 0 0% 15%;
+    --ring: 340 50% 55%;
 
-  /* Custom color variables */
-  --pink: 330, 100%, 50%;
-  --green: 150, 100%, 50%;
-  --pink-rgb: 255, 51, 153;
-  --green-rgb: 38, 97, 64;
-  --foreground-rgb: 255, 255, 255;
-  --background-start-rgb: 0, 0, 0;
-  --background-end-rgb: 0, 0, 0;
+    /* Custom color variables */
+    --pink: 340, 50%, 55%;
+    --green: 150, 30%, 25%;
+    --pink-rgb: 217, 72, 122;
+    --green-rgb: 38, 97, 64;
+  }
 }
 
-body {
-  @apply bg-background text-foreground;
-  font-feature-settings: "rlig" 1, "calt" 1;
+@layer base {
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
 }
 
 /* Custom scrollbar */
@@ -283,120 +285,88 @@ body {
   box-shadow: 0 0 15px rgba(217, 72, 122, 0.5);
 }
 
+/* Markdown content styling */
+.markdown-content {
+  width: 100%;
+}
+
+.markdown-content strong {
+  color: hsl(var(--pink));
+  font-weight: 700;
+}
+
+.markdown-content ul {
+  list-style-type: disc;
+  margin-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.markdown-content ol {
+  list-style-type: decimal;
+  margin-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.markdown-content li {
+  margin-bottom: 0.5rem;
+}
+
+.markdown-content p {
+  margin-bottom: 1rem;
+}
+
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3 {
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  font-weight: 700;
+}
+
+.markdown-content h1 {
+  font-size: 1.5rem;
+  color: hsl(var(--pink));
+}
+
+.markdown-content h2 {
+  font-size: 1.25rem;
+  color: hsl(var(--pink));
+}
+
+.markdown-content h3 {
+  font-size: 1.125rem;
+  color: hsl(var(--pink));
+}
+
 /* Ambient background */
 .ambient-bg {
-  background: radial-gradient(circle at 50% 50%, #1c1c1c 0%, #000000 100%);
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: -1;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
 }
 
 .light-spot {
   position: absolute;
   border-radius: 50%;
-  filter: blur(50px);
+  filter: blur(100px);
   opacity: 0.15;
+  z-index: 0;
 }
 
 .light-spot-pink {
-  background: radial-gradient(circle at center, hsl(var(--pink)), transparent 70%);
+  background-color: rgba(var(--pink-rgb), 0.8);
 }
 
 .light-spot-green {
-  background: radial-gradient(circle at center, hsl(var(--green)), transparent 70%);
+  background-color: rgba(var(--green-rgb), 0.8);
 }
 
 .light-spot-blend {
-  background: radial-gradient(circle at center, hsl(var(--pink)), hsl(var(--green)), transparent 70%);
-}
-
-/* Markdown styling */
-.markdown-content {
-  color: white;
-}
-
-/* Cocktail Recipe Styling */
-.markdown-content h2, 
-.markdown-content h3,
-.markdown-content strong {
-  color: hsl(var(--pink));
-  margin-top: 0.75rem;
-  margin-bottom: 0.5rem;
-  font-weight: 600;
-}
-
-/* Make the cocktail name stand out */
-.markdown-content strong:first-of-type {
-  font-size: 1.25rem;
-  display: block;
-  margin-bottom: 0.75rem;
-  text-align: center;
-  color: hsl(var(--green));
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  padding-bottom: 0.5rem;
-}
-
-.markdown-content p {
-  margin-bottom: 0.75rem;
-}
-
-.markdown-content ul, 
-.markdown-content ol {
-  margin-left: 1.5rem;
-  margin-bottom: 1rem;
-  padding-left: 0.5rem;
-}
-
-.markdown-content li {
-  margin-bottom: 0.35rem;
-  list-style-type: disc;
-}
-
-.markdown-content em {
-  font-style: italic;
-  color: rgba(255, 255, 255, 0.7);
-}
-
-/* Number steps in preparation instructions */
-.markdown-content ol {
-  counter-reset: steps;
-  list-style: none;
-}
-
-.markdown-content ol li {
-  counter-increment: steps;
-  position: relative;
-  padding-left: 1.5rem;
-  margin-bottom: 0.5rem;
-}
-
-.markdown-content ol li::before {
-  content: counter(steps) ".";
-  position: absolute;
-  left: 0;
-  color: hsl(var(--pink));
-  font-weight: bold;
-}
-
-.message-ai, .message-user {
-  padding: 1rem 1.25rem;
-  border-radius: 1.25rem;
-  max-width: 85%;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.message-ai {
-  background-color: rgba(44, 44, 44, 0.8);
-  border: 1px solid hsl(var(--green), 0.2);
-  backdrop-filter: blur(10px);
-}
-
-.message-user {
-  background-color: rgba(var(--pink-rgb), 0.15);
-  border: 1px solid hsl(var(--pink), 0.3);
-  backdrop-filter: blur(10px);
+  background: linear-gradient(135deg, rgba(var(--pink-rgb), 0.5) 0%, rgba(var(--green-rgb), 0.5) 100%);
 }
 

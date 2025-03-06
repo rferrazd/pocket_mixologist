@@ -3,8 +3,30 @@
 import Link from "next/link"
 import { ArrowRight, Wine, Sparkles, Droplets } from "lucide-react"
 import { useEffect, useRef } from "react"
+import { useRouter } from "next/navigation"
+import { startConversation } from "@/lib/api"
 
 export default function LandingPage() {
+  const router = useRouter();
+
+  const handleStartConversation = async () => {
+    try {
+      // Start a conversation with the cocktail agent
+      const response = await startConversation();
+      
+      // Store the initial agent response and config in session storage
+      sessionStorage.setItem('agentInitialResponse', response.agent_response);
+      sessionStorage.setItem('agentConfig', JSON.stringify(response.config));
+      
+      // Navigate to the chat page
+      router.push('/chat');
+    } catch (error) {
+      console.error('Failed to start conversation:', error);
+      // Navigate to chat page anyway, but there won't be an initial message
+      router.push('/chat');
+    }
+  };
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-black text-white overflow-hidden relative">
       {/* Animated background particles */}
@@ -36,6 +58,12 @@ export default function LandingPage() {
 
       <div className="relative z-10 flex flex-col items-center justify-center space-y-12 px-4 text-center max-w-3xl">
         <div className="space-y-6">
+          <div className="inline-block mx-auto mb-2 p-1 rounded-full bg-gradient-to-r from-[hsl(var(--pink))]/20 to-[hsl(var(--green))]/20 backdrop-blur-sm border border-[hsl(var(--pink))]/30 animate-shimmer overflow-hidden">
+            <span className="px-4 py-1 text-xs font-medium text-[hsl(var(--pink))] rounded-full font-sans">
+              Your Personal Bartender
+            </span>
+          </div>
+
           <h1 className="text-5xl md:text-7xl font-bold tracking-tighter font-serif italic animate-text-reveal">
             Pocket{" "}
             <span className="bg-gradient-to-r from-[hsl(var(--pink))] to-[hsl(var(--green))] bg-clip-text text-transparent animate-gradient">
@@ -48,8 +76,8 @@ export default function LandingPage() {
           </p>
         </div>
 
-        <Link
-          href="/chat"
+        <button
+          onClick={handleStartConversation}
           className="group relative inline-flex items-center justify-center px-8 py-3.5 overflow-hidden rounded-full transition-all duration-300 animate-bounce-subtle"
         >
           <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-[hsl(var(--pink))] to-[hsl(var(--green))] opacity-90"></span>
@@ -58,7 +86,7 @@ export default function LandingPage() {
             Craft Your Cocktail
             <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
           </span>
-        </Link>
+        </button>
 
         <div className="pt-10 grid grid-cols-3 gap-8 max-w-lg w-full">
           <div className="flex flex-col items-center text-center group">

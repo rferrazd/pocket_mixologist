@@ -5,53 +5,41 @@ import type React from "react"
 import { useState, useRef, useEffect } from "react"
 import { Send, ArrowLeft, Loader2, Wine } from "lucide-react"
 import Link from "next/link"
-import { useMixologistApi } from "../../hooks/use-mixologist-api"
+import { sendMessage } from "@/lib/api"
 import ReactMarkdown from 'react-markdown'
-
-// Define message interface
-interface Message {
-  id: string;
-  role: "user" | "assistant";
-  content: string;
-}
+import remarkGfm from 'remark-gfm'
 
 export default function ChatPage() {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<{ id: string; role: "user" | "assistant"; content: string }[]>([]);
   const [input, setInput] = useState("");
-  const { startConversation, sendMessage, isLoading } = useMixologistApi();
+  const [isLoading, setIsLoading] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [isSending, setIsSending] = useState(false)
   const [playSound, setPlaySound] = useState(false)
 
-  // Start conversation when the component mounts
+  // Load the initial agent response from session storage when component mounts
   useEffect(() => {
-    const initConversation = async () => {
-      setIsSending(true);
-      const initialResponse = await startConversation();
-      setIsSending(false);
-      
-      if (initialResponse) {
-        setMessages([
-          {
-            id: "1",
-            role: "assistant",
-            content: initialResponse,
-          },
-        ]);
-      } else {
-        // Fall back to default message if API call fails
-        setMessages([
-          {
-            id: "1",
-            role: "assistant",
-            content: "Welcome to Pocket Mixologist. I'm your personal bartender, ready to craft the perfect cocktail for you. What are you in the mood for today? Or tell me about your preferences, and I'll suggest something special.",
-          },
-        ]);
-      }
-    };
-
-    initConversation();
+    const initialAgentResponse = sessionStorage.getItem('agentInitialResponse');
+    if (initialAgentResponse) {
+      setMessages([
+        {
+          id: Date.now().toString(),
+          role: "assistant",
+          content: initialAgentResponse
+        }
+      ]);
+    } else {
+      // Fallback welcome message if no initial response from API
+      setMessages([
+        {
+          id: "1",
+          role: "assistant",
+          content:
+            "Welcome to Pocket Mixologist. I'm your personal bartender, ready to craft the perfect cocktail for you. What are you in the mood for today? Or tell me about your preferences, and I'll suggest something special.",
+        },
+      ]);
+    }
   }, []);
 
   // Scroll to bottom when messages change
@@ -69,35 +57,84 @@ export default function ChatPage() {
     setInput(e.target.value);
   };
 
-  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!input.trim() || isSending) return;
+    if (!input.trim()) return;
 
-    // Add user message to UI immediately
-    const userMessage: Message = {
+    // Add user message to chat
+    const userMessage = {
       id: Date.now().toString(),
-      role: "user",
-      content: input,
+      role: "user" as const,
+      content: input.trim()
     };
-    setMessages(prevMessages => [...prevMessages, userMessage]);
     
-    // Clear input
+    setMessages(prev => [...prev, userMessage]);
     setInput("");
-    
-    // Send to API
     setIsSending(true);
-    const response = await sendMessage(input.trim());
-    setIsSending(false);
-    
-    if (response) {
-      // Add assistant response
-      const assistantMessage: Message = {
+    setIsLoading(true);
+
+    try {
+      // Send message to API
+      const response = await sendMessage(userMessage.content);
+      
+      // Add agent response to chat
+      if (response.agent_response) {
+        const agentMessage = {
+          id: (Date.now() + 1).toString(),
+          role: "assistant" as const,
+          content: response.agent_response
+        };
+        setMessages(prev => [...prev, agentMessage]);
+      }
+    } catch (error) {
+      console.error("Failed to send message:", error);
+      // Add error message
+      const errorMessage = {
         id: (Date.now() + 1).toString(),
-        role: "assistant",
-        content: response.agent_response,
+        role: "assistant" as const,
+        content: "Sorry, I encountered an error. Please try again."
       };
-      setMessages(prevMessages => [...prevMessages, assistantMessage]);
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsSending(false);
+      setIsLoading(false);
     }
+  };
+
+  // Custom rendering components for the markdown
+  const MarkdownComponents = {
+    // Style links
+    a: ({ node, ...props }: any) => (
+      <a 
+        {...props} 
+        className="text-[hsl(var(--pink))] underline hover:text-[hsl(var(--green))]"
+        target="_blank" 
+        rel="noopener noreferrer"
+      />
+    ),
+    // Style paragraphs
+    p: ({ node, ...props }: any) => <p {...props} className="mb-4" />,
+    // Style headings
+    h1: ({ node, ...props }: any) => <h1 {...props} className="text-xl font-bold my-4" />,
+    h2: ({ node, ...props }: any) => <h2 {...props} className="text-lg font-bold my-3" />,
+    h3: ({ node, ...props }: any) => <h3 {...props} className="text-md font-bold my-2" />,
+    // Style lists
+    ul: ({ node, ...props }: any) => <ul {...props} className="list-disc ml-6 mb-4" />,
+    ol: ({ node, ...props }: any) => <ol {...props} className="list-decimal ml-6 mb-4" />,
+    li: ({ node, ...props }: any) => <li {...props} className="mb-1" />,
+    // Style bold text
+    strong: ({ node, ...props }: any) => <strong {...props} className="font-bold text-[hsl(var(--pink))]" />,
+    // Style code blocks
+    code: ({ node, inline, className, children, ...props }: any) => {
+      if (inline) {
+        return <code className="bg-[#1c1c1c] px-1 py-0.5 rounded text-[hsl(var(--green))]" {...props}>{children}</code>;
+      }
+      return (
+        <pre className="bg-[#1c1c1c] p-4 rounded-md my-4 overflow-x-auto">
+          <code className="text-[hsl(var(--green))]" {...props}>{children}</code>
+        </pre>
+      );
+    },
   };
 
   return (
@@ -166,7 +203,12 @@ export default function ChatPage() {
               <div className={message.role === "user" ? "message-user" : "message-ai"}>
                 {message.role === "assistant" ? (
                   <div className="font-sans leading-relaxed markdown-content">
-                    <ReactMarkdown>{message.content}</ReactMarkdown>
+                    <ReactMarkdown 
+                      remarkPlugins={[remarkGfm]}
+                      components={MarkdownComponents}
+                    >
+                      {message.content}
+                    </ReactMarkdown>
                   </div>
                 ) : (
                   <div className="font-sans leading-relaxed">{message.content}</div>
@@ -211,7 +253,7 @@ export default function ChatPage() {
 
       {/* Input Form with enhanced animations */}
       <div className="relative z-10 border-t border-[#2C2C2C] p-6 md:p-8 bg-[#1C1C1C]">
-        <form onSubmit={onSubmit} className="max-w-2xl mx-auto">
+        <form onSubmit={handleSubmit} className="max-w-2xl mx-auto">
           <div className="relative">
             <input
               type="text"
