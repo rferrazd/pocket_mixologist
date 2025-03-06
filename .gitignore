@@ -49,3 +49,4 @@ Thumbs.db
 
 # keys
 .streamlit/secrets.toml
+streamlit_app/.streamlit/secrets.toml
