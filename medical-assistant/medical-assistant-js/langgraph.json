@@ -1,0 +1,16 @@
+{
+      "dependencies": [
+          "."
+      ],
+      "graphs": {
+          "agent": "./dist/agent/agent.js:agent"
+      },
+      "env":  "./.env",
+      "node_version": "20",
+      "dockerfile_lines": [
+          "RUN npm install -g tsx",
+          "WORKDIR /app",
+          "COPY . .",
+          "RUN npm install"
+      ]
+  }

@@ -172,23 +172,6 @@ def compile_agent():
 
 def start_agent(agent: langgraph.graph.state.CompiledStateGraph, config: dict):
 
-      # for event in agent.stream(
-      # {
-      #       "messages": [ (
-      #             "system",
-      #             SYSTEM_PROMPT
-                  
-      #             ) ,
-      #             (
-      #             "user",
-      #             "Help me build a cocktail!",  # "Use the search tool to ask the user where they are, then look up the weather there"
-      #             )
-      #       ]
-      # },
-      # config,
-      # stream_mode="values",
-      # ):
-      #       event["messages"][-1].pretty_print()
       run = agent.invoke(
       {
             "messages": [ (
@@ -265,3 +248,4 @@ if __name__ == "__main__":
                        break
                   else:
                         print('\nERROR')
+                        # ou colocar um continue pra continuar o while loop
