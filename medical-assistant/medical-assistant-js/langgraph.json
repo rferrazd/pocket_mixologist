@@ -3,7 +3,7 @@
           "."
       ],
       "graphs": {
-          "agent": "./dist/agent/agent.js:agent"
+          "agent": "./src/agent/agent.ts:agent"
       },
       "env":  "./.env",
       "node_version": "20",

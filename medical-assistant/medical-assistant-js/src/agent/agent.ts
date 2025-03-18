@@ -54,7 +54,8 @@ import {
   END,
   MemorySaver,
   interrupt,
-  Command
+  Command,
+  messagesStateReducer
 } from "@langchain/langgraph";
 import { BaseMessage, HumanMessage, AIMessage, SystemMessage } from "@langchain/core/messages";
 import { PromptTemplate } from "@langchain/core/prompts";
@@ -92,6 +93,11 @@ const model_emergencial = new ChatOpenAI({ modelName: "gpt-4o-mini" });
 // Extend the base MessagesAnnotation state with another field
 const AgentState = Annotation.Root({
   ...MessagesAnnotation.spec,
+  // Override the messages annotation to include default system message
+  messages: Annotation({
+    reducer: messagesStateReducer,
+    default: () => [new SystemMessage(ROUTER_PROMPT)]
+  }),
   decision: Annotation({
     reducer: (old: string, update: typeof DECISION_TYPES[number]) => {
       const validValues = DECISION_TYPES;
@@ -133,6 +139,7 @@ const model = m.withStructuredOutput(RouterResponseSchema);
 
 // llm_router
 async function llm_router(state: typeof AgentState.State) {
+  
   if (state.messages.length > 0) {
     const lastMessage = state.messages[state.messages.length - 1];
     // Check if the last message is a HumanMessage by examining its constructor name
@@ -142,7 +149,9 @@ async function llm_router(state: typeof AgentState.State) {
 
       console.log("\nTHIS IS THE ROUTER RESPONSE SYNTHESIS:");
       console.log(response.case_synthesis);
-      
+      console.log("\nTHIS IS THE DECISION REASON:");
+      console.log(response.decision_reason);  
+
       // Add the next question to human or case_synthesis to the chat history
       if (response.question_to_human && response.decision === "ask_human") {
         state.messages.push(new AIMessage(response.question_to_human));
@@ -326,14 +335,14 @@ const config = { configurable: { thread_id: "test_2" } };
 
 
 // Exemplo emergencial
-const example_input = "Crise asmática com dificuldade respiratória, chiado intenso, cianose e incapacidade de falar"
+//const example_input = "Crise asmática com dificuldade respiratória, chiado intenso, cianose e incapacidade de falar"
 // Exemplo de diagnostico diferencial
 //const example_input = "Enxaqueca com aura, acompanhada de dor de cabeça intensa, fotofobia e sintomas visuais, persistindo por horas e melhorando com analgésicos." 
 // Exemplo ambiguo
-//const example_input = "dor de ouvido a dois dias"
+const example_input = "tuberculose"
 const input = {
   messages: [
-    new SystemMessage(ROUTER_PROMPT),
+    //new SystemMessage(ROUTER_PROMPT),
     new HumanMessage(example_input)
   ],
   initial_human_input: example_input,
@@ -442,7 +451,7 @@ const runAgent = async () => {
   console.log(`\n\nINTERACTION_COUNT after agent execution: ${INTERACTION_COUNT}`)
 };
     
-//runAgent();
+// runAgent();
 
 
 

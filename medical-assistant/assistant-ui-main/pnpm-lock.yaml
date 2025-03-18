@@ -71,6 +71,9 @@ importers:
       lucide-react:
         specifier: ^0.474.0
         version: 0.474.0(react@19.0.0)
+      nanoid:
+        specifier: ^5.1.4
+        version: 5.1.4
       next:
         specifier: 15.1.6
         version: 15.1.6(@opentelemetry/api@1.9.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
@@ -2131,8 +2134,8 @@ packages:
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
 
-  nanoid@5.0.9:
-    resolution: {integrity: sha512-Aooyr6MXU6HpvvWXKoVoXwKMs/KyVakWwg7xQfv5/S/RIgJMy0Ifa45H9qqYy7pTCszrHzP21Uk4PZq2HpEM8Q==}
+  nanoid@5.1.4:
+    resolution: {integrity: sha512-GTFcMIDgR7tqji/LpSY8rtg464VnJl/j6ypoehYnuGb+Y8qZUdtKB8WVCXon0UEZgFDbuUxpIl//6FHLHgXSNA==}
     engines: {node: ^18 || >=20}
     hasBin: true
 
@@ -3068,7 +3071,7 @@ snapshots:
       classnames: 2.5.1
       json-schema: 0.4.0
       lucide-react: 0.475.0(react@19.0.0)
-      nanoid: 5.0.9
+      nanoid: 5.1.4
       react: 19.0.0
       react-dom: 19.0.0(react@19.0.0)
       react-textarea-autosize: 8.5.7(@types/react@19.0.8)(react@19.0.0)
@@ -3900,7 +3903,7 @@ snapshots:
 
   assistant-stream@0.0.19:
     dependencies:
-      nanoid: 5.0.9
+      nanoid: 5.1.4
       secure-json-parse: 3.0.2
 
   ast-types-flow@0.0.8: {}
@@ -5347,7 +5350,7 @@ snapshots:
 
   nanoid@3.3.8: {}
 
-  nanoid@5.0.9: {}
+  nanoid@5.1.4: {}
 
   natural-compare@1.4.0: {}
 
