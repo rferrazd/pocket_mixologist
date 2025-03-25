@@ -56,6 +56,69 @@ class RouterResponse(BaseModel):
         description="Explicação pela qual a decisão emergencial, diagnostico_diferencial, ask_human foi feita."
     )
 
+# Informações da Organização
+class OrgInfo(BaseModel):
+    org: str = "INTELLIDOCTOR"
+    orgUnit: str = "INTELLIDOCTOR"
+    user: str = "intellidoctor@wisecare.com.br"
+    login: str = "0a906291-1269-4eb5-8372-99879367de32"
+    password: str = "q5SjG_3k29.T"
+
+# Detalhes do médico
+class Doctor(BaseModel):
+      name: str = 'Médico Silva'
+      crm: str = '1231231'
+      uf: str = 'PB' 
+
+# Local onde ocorreu a consulta
+class AppointmentTookPlaceIn(BaseModel):
+      name: str = 'Nome'
+      address: str = 'Rua das Flores, 137'
+      neighbourhood: str = 'Bairro'
+      city: str = 'Cidade'
+      uf: str = 'PB'
+      phone: str = '11999999999'
+
+# Info do paciente
+class LLMPatient(BaseModel):
+     # Detalhes do paciente
+     name: str = Field(description = "Nome do paciente")
+     age: str = Field(description = "Idade do paciente")
+     gender: str = Field(description = "Gênero do paciente")
+
+# Class para cada medicamento
+class PrescriptionItem(BaseModel):
+    name: str = Field(description="Nome do medicamento")
+    dosage: str = Field(description="Dosagem do medicamento")
+    posology: str = Field(description="Posologia do medicamento")
+
+
+# Saída do LLM
+class LLMPrescription(BaseModel): 
+    """Classe Pydantic que define a estrutura de saída do LLM para gerar a prescrição."""
+    
+    # Detalhes do paciente
+    consultant: LLMPatient
+    
+    # Lista de prescrições
+    prescriptions: list[PrescriptionItem] = Field(
+        description="Lista de medicamentos prescritos",
+        default_factory=list  # This makes it default to an empty list if not provided
+    )
+      
+
+# Pydantic class pra gerar parte do payload para mandar pra WiseCare
+class Prescription(BaseModel):
+      """Classe Pydantic para gerar o json a ser enviado para a API do Wisecare."""
+      codigo: str = '12314' # código gerado pelo Intellidoctor ou fornecido pelo Wisecare
+
+      prescriptions: LLMPrescription # Detalhes gerados pelo LLM
+
+      doctor: Doctor
+
+      appointmentTookPlaceIn: AppointmentTookPlaceIn
+
+
 # ----------------------------------
 # SECTION: STATE DEFINITION
 # ----------------------------------
@@ -193,6 +256,59 @@ Regras:
 - Não prescreva medicamentos.
 - Baseie sua análise em evidências clínicas atualizadas.
 """
+GENERATE_PRESCRIPTION_PROMPT = """Você é responsável por gerar um output estruturado com base no input do médico (usuário), sem adicionar ou inventar nenhum medicamento que não tenha sido explicitamente informado.
+
+INPUT DO USUÁRIO:
+{input}
+
+HISTÓRICO DA CONVERSA (se disponível):
+{conversation_history}
+
+INSTRUÇÕES PARA GERAÇÃO DA PRESCRIÇÃO:
+
+1. DADOS DO PACIENTE (consultant):
+   - name: Nome completo do paciente (string)
+   - age: Idade do paciente (string)
+   - gender: Gênero do paciente (string)
+
+2. MEDICAMENTOS (prescriptions):
+   Para cada medicamento que o médico indicar, forneça:
+   - name: Nome do medicamento (utilize o nome genérico, se aplicável, conforme informado)
+   - dosage: Dosagem específica (ex: "500mg", "10ml")
+   - posology: Posologia detalhada (ex: "1 comprimido a cada 8 horas", "2 gotas em cada narina 3x/dia")
+
+REGRAS IMPORTANTES:
+1. Considere o histórico completo da conversa para contextualizar a prescrição, se disponível.
+2. Utilize exclusivamente os medicamentos informados pelo médico.
+3. NÃO crie ou invente nenhum medicamento que não esteja explicitamente indicado.
+4. Todos os campos devem ser preenchidos obrigatoriamente.
+5. O campo "prescriptions" deve ser sempre uma lista, mesmo que contenha apenas um medicamento.
+
+FORMATO DE SAÍDA:
+Gere a prescrição no formato JSON que corresponda exatamente à seguinte estrutura Pydantic:
+
+{{
+    "consultant": {{
+        "name": "Nome do Paciente",
+        "age": "Idade",
+        "gender": "Gênero"
+    }},
+    "prescriptions": [
+        {{
+            "name": "Nome do Medicamento",
+            "dosage": "Dosagem",
+            "posology": "Posologia"
+        }}
+    ]
+}}
+
+Lembre-se:
+- Utilize apenas os medicamentos explicitamente fornecidos pelo médico.
+- Todos os campos são obrigatórios e o formato de saída deve corresponder exatamente à estrutura Pydantic.
+"""
+
+
+
 
 # ----------------------------------
 # NODES AND CONDITIONAL EDGES

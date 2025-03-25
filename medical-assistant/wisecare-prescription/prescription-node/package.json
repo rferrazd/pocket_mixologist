@@ -1,0 +1,17 @@
+{
+  "name": "prescription-node",
+  "packageManager": "yarn@4.6.0",
+  "scripts": {
+    "prescription": "ts-node src/prescription.ts",
+    "examRequest": "ts-node src/examRequest.ts",
+    "medicalCertificate": "ts-node src/medicalCertificate.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.11",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.2"
+  },
+  "dependencies": {
+    "wise-api": "2.0.22"
+  }
+}
