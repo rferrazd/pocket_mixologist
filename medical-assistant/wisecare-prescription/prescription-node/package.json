@@ -1,10 +1,14 @@
 {
   "name": "prescription-node",
   "packageManager": "yarn@4.6.0",
+  "main": "src/wisecare-lib/index.ts",
   "scripts": {
     "prescription": "ts-node src/prescription.ts",
     "examRequest": "ts-node src/examRequest.ts",
-    "medicalCertificate": "ts-node src/medicalCertificate.ts"
+    "medicalCertificate": "ts-node src/medicalCertificate.ts",
+    "generatePrescription": "ts-node src/generatePrescription.ts",
+    "build": "tsc",
+    "start": "ts-node src/index.ts"
   },
   "devDependencies": {
     "@types/node": "^22.13.11",

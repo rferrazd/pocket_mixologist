@@ -52,6 +52,30 @@ const main = async () => {
         uf: 'PB',
         phone: '11999999999',
       },
+    },
+    skinInfo: {
+      images: {
+        logo: "https://minio.homolog.v4h.cloud/mail-logo/prescription.png"
+      },
+      colors: {
+        header: "#0A7BED",
+        footer: {
+          primary: "#0A7BED",
+          secondary: "#054586"
+        },
+        title: "#CF0014",
+        text: {
+          gray100: "#EFEFEF",
+          gray200: "#DBDBDB",
+          gray300: "#7A7A7A",
+          gray400: "#303030",
+          blue: "#0A7BED"
+        },
+        background: "#ffffff"
+      },
+      links: {
+        validationUrl: "https://receita.v4h.cloud"
+      }
     }
   });
   // depois configurar o skin pra hospitais diferentes

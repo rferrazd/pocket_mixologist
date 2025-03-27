@@ -2,7 +2,7 @@
 # SECTION: IMPORTS
 # ----------------------------------
 import os
-from typing import Literal, Optional
+from typing import Literal, Optional, Dict, List
 from datetime import datetime
 from devtools import pprint
 
@@ -31,7 +31,7 @@ os.environ['LANGSMITH_PROJECT'] = os.getenv('LANGSMITH_PROJECT')
 # ----------------------------------
 # SECTION: GLOBAL VARIABLES AND PARAMETERS
 # ----------------------------------
-VALID_DECISION_OPTIONS = {"emergencial", "diagnostico_diferencial", "ask_human"}
+VALID_DECISION_OPTIONS = {"emergencial", "diagnostico_diferencial", "ask_human", "gerar_documentos"}
 
 global INTERACTION_COUNT
 INTERACTION_COUNT = 0
@@ -40,7 +40,7 @@ INTERACTION_COUNT = 0
 # SECTION: STRUCTURED CLASSES
 # ----------------------------------
 class RouterResponse(BaseModel):
-    decision: Literal["emergencial", "diagnostico_diferencial", "ask_human", ""] = Field(
+    decision: Literal["emergencial", "diagnostico_diferencial", "ask_human", "gerar_documentos"] = Field(
         description="Decisão sobre qual caminho seguir com base na descrição do paciente"
     )
     case_synthesis: Optional[str] = Field(
@@ -56,6 +56,9 @@ class RouterResponse(BaseModel):
         description="Explicação pela qual a decisão emergencial, diagnostico_diferencial, ask_human foi feita."
     )
 
+# ----------------------------------
+# SECTION: STRUCTURED CLASSES FOR PRESCRIPTION GENERATION 
+# ----------------------------------
 # Informações da Organização
 class OrgInfo(BaseModel):
     org: str = "INTELLIDOCTOR"
@@ -92,7 +95,6 @@ class PrescriptionItem(BaseModel):
     dosage: str = Field(description="Dosagem do medicamento")
     posology: str = Field(description="Posologia do medicamento")
 
-
 # Saída do LLM
 class LLMPrescription(BaseModel): 
     """Classe Pydantic que define a estrutura de saída do LLM para gerar a prescrição."""
@@ -106,25 +108,88 @@ class LLMPrescription(BaseModel):
         default_factory=list  # This makes it default to an empty list if not provided
     )
       
-
 # Pydantic class pra gerar parte do payload para mandar pra WiseCare
 class Prescription(BaseModel):
       """Classe Pydantic para gerar o json a ser enviado para a API do Wisecare."""
       codigo: str = '12314' # código gerado pelo Intellidoctor ou fornecido pelo Wisecare
 
-      prescriptions: LLMPrescription # Detalhes gerados pelo LLM
+      consultant: Dict[str,str]
+      
+      prescriptions: List[Dict[str, str]]  # Detalhes gerados pelo LLM - agora aceita uma lista de dicionários
 
+      doctor: Dict[str, str]
+
+      appointmentTookPlaceIn: Dict[str, str]
+
+class ImageInfo(BaseModel):
+    logo: str = "https://minio.homolog.v4h.cloud/public/IntellidoctorLogo.png"
+
+class FooterColors(BaseModel):
+    primary: str = "#0A7BED"
+    secondary: str = "#054586"
+
+class ColorsText(BaseModel):
+    gray100: str = "#EFEFEF"
+    gray200: str = "#DBDBDB"
+    gray300: str = "#7A7A7A"
+    gray400: str = "#303030"
+    blue: str = "#0A7BED"
+
+class Colors(BaseModel):
+    header: str = "#0A7BED"
+    footer: FooterColors = FooterColors()
+    title: str = "#CF0014"
+    text: ColorsText = ColorsText()
+    background: str = "#ffffff"
+
+class Links(BaseModel):
+    validationUrl: str = "https://receita.v4h.cloud"
+
+class SkinInfo(BaseModel):
+    images: ImageInfo = ImageInfo()
+    colors: Colors = Colors()
+    links: Links = Links()
+
+# ----------------------------------
+# SECTION: STRUCTURED CLASSES FOR EXAM REQUEST GENERATION 
+# ----------------------------------
+
+# Class for LLM to generate json structure to construct the payload for the exam request 
+class LLMExamRequest(BaseModel):
+    """
+    Representa a saída estruturada para o pedido de exame gerado pela LLM.
+
+    Atributos:
+        consultant (str): Nome do paciente para quem o exame está sendo solicitado.
+        clinicalIndication (str): Explicação detalhada do motivo do pedido de exame, como acompanhamento de rotina ou investigação de sintomas específicos.
+        request (str): Descrição completa do pedido de exame, contendo todas as informações necessárias e instruções para a realização do procedimento.
+    """
+    consultant: str = Field(
+        description="Nome do paciente"
+    )
+    clinicalIndication: str = Field(
+        description="Informação detalhada sobre o motivo do pedido de exame, por exemplo, acompanhamento regular ou análise de sintomas específicos."
+    )
+    request: str = Field(
+        description="Descrição completa e precisa do pedido de exame, incluindo todas as instruções e detalhes necessários para a execução."
+    )
+
+# Pydantic class for generating the payload to send the exam request to the wisecare api
+class ExamRequest(BaseModel):
+      consultant : str = Field("Nome do paciente")
+      codigo: str = "EX12345"
+      clinicalIndication: str = Field(description="Motivo pelo pedido médico. Ex: acompanhamento de rotina")
+      request: str = Field(description="Detalhes do pedido do exame")
       doctor: Doctor
-
       appointmentTookPlaceIn: AppointmentTookPlaceIn
-
+      dateOfEmission: str 
 
 # ----------------------------------
 # SECTION: STATE DEFINITION
 # ----------------------------------
 class State(MessagesState):
     initial_human_input: Optional[str]
-    decision: Literal["emergencial", "diagnostico_diferencial", "ask_human", ""]
+    decision: Literal["emergencial", "diagnostico_diferencial", "ask_human", "receita_medica"]
     case_synthesis: Optional[str]
     question_to_human: Optional[str]
     final_answer: Optional[str]
@@ -139,6 +204,105 @@ model = model.with_structured_output(RouterResponse)
 # SECTION: PROMPTS
 # ----------------------------------
 ROUTER_PROMPT = """Você é um LLM Router em um sistema médico multiagente. Sua função é avaliar se as informações fornecidas pelo usuário (médicos auxiliando pacientes) são SUFICIENTES para tomar uma decisão segura ou se é necessário solicitar mais dados.
+
+CONTEXTO DO SISTEMA:
+Este sistema possui 4 componentes:
+1. VOCÊ (LLM Router): Responsável por analisar o input do usuário e, com base nas informações coletadas (possivelmente ao longo de várias interações), decidir se o caso precisa ser encaminhado para o Agente Emergencial, o Agente de Diagnóstico Diferencial, ou o Agente de Gerar Documentos.
+   **O parâmetro "case_synthesis" deve ser atualizado a cada interação, agregando todas as informações coletadas e formando uma síntese técnica clara e completa do caso.**
+2. Agente Emergencial: Especializado na orientação de casos que demandam atendimento imediato.
+3. Agente de Diagnóstico Diferencial: Especializado na investigação de condições clínicas que não indiquem urgência imediata.
+4. Agente de Gerar Documentos: Especializado em gerar documentos médicos como receitas, atestados e pedidos de exames com base nas informações fornecidas.
+
+CRITÉRIOS DE INSUFICIÊNCIA DE INFORMAÇÕES:
+Considere INSUFICIENTES os inputs que:
+- Sejam menção isolada de um sintoma (ex.: "dor no peito", "febre", "dor de cabeça");
+- Sejam apenas nomes de doenças sem qualquer contexto (ex.: "tuberculose", "diabetes");
+- Sejam descrições vagas (ex.: "não me sinto bem", "estou doente");
+- Não contenham detalhes como duração, intensidade ou outros dados clínicos relevantes;
+- Para geração de documentos: não especifiquou o tipo de documento
+
+SUA TAREFA ESPECÍFICA:
+1. Avaliar se o input do usuário contém dados suficientes para decidir entre:
+   - Caso emergencial
+   - Caso para diagnóstico diferencial
+   - Geração de documento médico
+2. Se as informações forem insuficientes, escolher "ask_human" e solicitar detalhes adicionais.
+3. Se as informações forem suficientes:
+   - Decidir "emergencial", se os dados indicarem uma situação de risco imediato (por exemplo, dor torácica com irradiação, dispneia e outros sinais de alerta);
+   - Decidir "diagnostico_diferencial", se os dados permitirem uma investigação diagnóstica sem indicar emergência;
+   - IMPORTANTE: Decidir "gerar_documentos", IMEDIATAMENTE se o usuário mencionar QUALQUER pedido relacionado a:
+     * Receitas médicas (qualquer menção a "receita", "prescrição", "medicação", "remédio") independente do remédio!
+     * Atestados médicos (qualquer menção a "atestado", "declaração", "afastamento")
+     * Pedidos de exame (qualquer menção a "exame", "teste", "análise") 
+     * Se detectar QUALQUER pedido deste tipo, selecione "gerar_documentos" sem questionar detalhes sobre sintomas ou justificativas - o agente especializado fará isso posteriormente.
+
+4. **Caso haja múltiplas interações para esclarecer o problema:**  
+   A cada nova interação com o usuário, você deve atualizar o parâmetro "case_synthesis" agregando as novas informações à síntese acumulada. O "case_synthesis" deve refletir todas as informações obtidas até o momento. Ao final do processo, o campo "case_synthesis" deverá conter a síntese completa e atualizada de todo o caso.
+   
+   Essa síntese técnica deve:
+   - Incluir dados relevantes fornecidos pelo usuário (sintomas, duração, medicamentos, tipo de documento, etc.);
+   - Refletir de forma objetiva o entendimento acumulado do caso;
+   - Servir como um briefing claro e preciso para o próximo agente.
+
+REGRA PRIORITÁRIA: Se o input contiver QUALQUER menção a "receita", "prescrição", "atestado", "pedido de exame" ou termos semelhantes, ou desejo do usuario para gerar algum desses documentos, você DEVE escolher "gerar_documentos" independentemente de quaisquer outras considerações. Não questione a necessidade médica ou detalhes clínicos - essa análise será feita pelo agente especializado.
+
+PARÂMETROS DA SUA RESPOSTA:
+- "decision": Sua decisão final ("emergencial", "diagnostico_diferencial", "gerar_documentos" ou "ask_human").
+- "case_synthesis": Deve ser preenchido ao longo da interação com o usuário e quando a decisão não for "ask_human".  
+  Para casos encaminhados, ele consiste em uma síntese técnica que combina todas as informações relevantes coletadas no caso.
+- "question_to_human": Pergunta(s) específica(s) para obter mais informações, a ser utilizado quando a decisão for "ask_human".
+- "decision_reason": Justificativa para sua decisão, indique se as informações foram suficientes ou não e explicar quais dados faltaram, se for o caso.
+
+EXEMPLOS CORRETOS:
+
+INPUTS INSUFICIENTES:
+Exemplo 1:  
+Input: "Dor no peito"  
+Resposta:
+{
+  "decision": "ask_human",
+  "case_synthesis": "Dor no peito",
+  "question_to_human": "Para avaliar melhor, por favor informe: há quanto tempo o paciente sente essa dor? Ela irradia para braço ou mandíbula? Há outros sintomas, como falta de ar ou náuseas?",
+  "decision_reason": "Informações insuficientes. 'Dor no peito' isolada não permite avaliar gravidade sem dados adicionais sobre duração, irradiação e sintomas associados."
+}
+
+INPUTS SUFICIENTES:
+Exemplo 2:  
+Input: "Dor no peito intensa há 30 minutos que irradia para o braço esquerdo, com falta de ar e suor frio."  
+Resposta:
+{
+  "decision": "emergencial",
+  "case_synthesis": "Paciente com dor torácica intensa iniciada há 30 minutos, com irradiação para o braço esquerdo, associada à dispneia e diaforese, compatível com um quadro de síndrome coronariana aguda.",
+  "question_to_human": "",
+  "decision_reason": "As informações fornecidas são suficientes para indicar uma emergência devido ao conjunto de sinais clínicos presentes."
+}
+
+Exemplo 3:  
+Input: "Paciente Maria Silva, 45 anos, com dor de cabeça frontal há 3 meses, sem náuseas ou alterações visuais, mas com piora à tarde. Sem febre ou outros sintomas associados."
+Resposta:
+{
+  "decision": "diagnostico_diferencial",
+  "case_synthesis": "Paciente Maria Silva, 45 anos, com cefaleia frontal persistente há 3 meses, sem sinais de alarme (ausência de náuseas, alterações visuais ou febre), com padrão de piora vespertina.",
+  "question_to_human": "",
+  "decision_reason": "As informações fornecidas são suficientes para orientar um diagnóstico diferencial de cefaleia crônica, embora não indiquem risco imediato."
+}
+
+Exemplo 4:  
+Input: "Preciso de uma receita para o paciente."
+Resposta:
+{
+  "decision": "gerar_documentos",
+  "case_synthesis": "Solicitação de receita médica.",
+  "question_to_human": "",
+  "decision_reason": "Usuário mencionou 'receita', o que indica claramente a necessidade de geração de documento médico."
+}
+
+
+LEMBRE-SE: Caso haja qualquer dúvida sobre a suficiência das informações fornecidas pelo usuário, escolha a opção "ask_human". Utilize "ask_human" no máximo 3 vezes.
+
+Agora, analise o caso apresentado pelo usuário:"""
+
+ROUTER_PROMPT_OLD = """Você é um LLM Router em um sistema médico multiagente. Sua função é avaliar se as informações fornecidas pelo usuário (médicos auxiliando pacientes) são SUFICIENTES para tomar uma decisão segura ou se é necessário solicitar mais dados.
 CONTEXTO DO SISTEMA:
 Este sistema possui 3 componentes:
 1. VOCÊ (LLM Router): Responsável por analisar o input do usuário e, com base nas informações coletadas (possivelmente ao longo de várias interações), decidir se o caso precisa ser encaminhado para o Agente Emergencial ou para o Agente de Diagnóstico Diferencial.
@@ -227,9 +391,9 @@ Resposta final:
 
 LEMBRE-SE: Caso haja qualquer dúvida sobre a suficiência das informações fornecidas pelo usuário, escolha a opção "ask_human". Utilize "ask_human" no máximo 3 vezes.
 
-Agora, analise o caso apresentado pelo usuário:
-"""
-EMERGENCIAL_PROMPT = """Você é um especialista médico. Avalie o caso emergencial para: {input}
+Agora, analise o caso apresentado pelo usuário:"""
+
+EMERGENCIAL_PROMPT = """Você é um especialista médico. Avalie o caso emergencial para: {input} 
 
 Objetivo:
 Oferecer orientações urgentes e baseadas em evidências.
@@ -241,8 +405,7 @@ Instruções:
 4. Contraindicações: Aponte procedimentos e medicações a evitar.
 5. Critérios de Gravidade: Destaque sinais que indiquem deterioração e necessidade de ação urgente.
 
-Utilize terminologia médica precisa, baseando-se em protocolos atualizados (ACLS, ATLS, AHA) e adapte as instruções conforme o público (profissionais ou leigos).
-"""
+Utilize terminologia médica precisa, baseando-se em protocolos atualizados (ACLS, ATLS, AHA) e adapte as instruções conforme o público (profissionais ou leigos)."""
 
 DIAGNOSTICO_DIFERENCIAL_PROMPT = """Você é um especialista médico. Avalie o diagnóstico diferencial para: {input}
 Instruções:
@@ -254,8 +417,8 @@ Instruções:
 Regras:
 - Use linguagem técnica e clara.
 - Não prescreva medicamentos.
-- Baseie sua análise em evidências clínicas atualizadas.
-"""
+- Baseie sua análise em evidências clínicas atualizadas."""
+
 GENERATE_PRESCRIPTION_PROMPT = """Você é responsável por gerar um output estruturado com base no input do médico (usuário), sem adicionar ou inventar nenhum medicamento que não tenha sido explicitamente informado.
 
 INPUT DO USUÁRIO:
@@ -307,8 +470,32 @@ Lembre-se:
 - Todos os campos são obrigatórios e o formato de saída deve corresponder exatamente à estrutura Pydantic.
 """
 
+GENERATE_EXAM_REQUEST_PROMPT = """Você é especializado em gerar pedidos de exames estruturados de acordo com o input do usuário (médico).
 
+INPUT DO USUÁRIO:
+{input}
 
+HISTÓRICO DA CONVERSA (se disponível):
+{conversation_history}  
+
+INSTRUÇÕES:
+1. Analise cuidadosamente o INPUT DO USUÁRIO e o HISTÓRICO DA CONVERSA (se disponível)
+2. Para o campo 'consultant' : transcreva o nome do paciente providenciado pelo usuario
+2. Para o campo 'clinicalIndication': transcreva APENAS a indicação clínica fornecida pelo médico, sem adicionar hipóteses diagnósticas ou detalhes não mencionados
+3. Para o campo 'request': transcreva APENAS o pedido de exame exatamente como informado pelo médico, sem elaborações adicionais
+4. Mantenha a linguagem técnica e profissional, apropriada para documentação médica
+5. NÃO INVENTE NENHUMA INFORMAÇÃO que não esteja explicitamente mencionada no input ou histórico
+6. NÃO ADICIONE interpretações clínicas, hipóteses diagnósticas ou sugestões que não foram explicitamente fornecidas
+
+FORMATO DE SAÍDA:
+Sua resposta deve ser EXCLUSIVAMENTE um objeto JSON válido contendo apenas os campos 'clinicalIndication' e 'request', sem comentários adicionais, explicações ou marcações de código.
+
+Exemplo de saída válida:
+{{
+    "consultant" : "Roberta Garcis",
+    "clinicalIndication": "Dor retroauricular",
+    "request": "Otoscopia bilateral"
+}}"""
 
 # ----------------------------------
 # NODES AND CONDITIONAL EDGES
@@ -436,6 +623,9 @@ def router(state: State):
     elif decision == "emergencial":
         print("INSIDE ROUTER selected \"emergencial\"")
         return "emergencial"
+    elif decision == "gerar_documentos":
+         print("INSIDE ROUTER selected \"gerar_documentos\"")
+         return "gerar_documentos"
 
 
 # ----------------------------------
