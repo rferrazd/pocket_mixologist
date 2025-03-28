@@ -185,6 +185,31 @@ class ExamRequest(BaseModel):
       dateOfEmission: str 
 
 # ----------------------------------
+# SECTION: STRUCTURED CLASSES FOR MEDICAL CERTIFICATE GENERATION 
+# ----------------------------------
+# Pydantic class for LLM to generate details of the medical certificate
+class LLMMedicalCertificate(BaseModel):
+    """
+    Modelo para estruturar a resposta do LLM ao gerar um atestado médico.
+    Contém apenas os campos básicos que serão extraídos do input do usuário.
+    """
+    consultant: str = Field(description="Nome completo do paciente que está recebendo o atestado médico")
+    period: str = Field(description="Período de afastamento ou repouso recomendado pelo médico (ex: '7 dias', '2 semanas')")
+    notes: str = Field(description="Descrição do motivo do atestado, incluindo condição médica e recomendações específicas")
+
+# Generate Medical certificate payload
+class MedicalCertificate(BaseModel):
+    """
+    Modelo completo para geração do atestado médico em PDF.
+    Inclui todos os dados necessários para o documento oficial, incluindo informações do médico e local.
+    """
+    consultant: str = Field(description="Nome completo do paciente que está recebendo o atestado médico")
+    period: str = Field(description="Período de afastamento ou repouso recomendado pelo médico (ex: '7 dias', '2 semanas')")
+    notes: str = Field(description="Descrição do motivo do atestado, incluindo condição médica e recomendações específicas")
+    doctor: Doctor = Field(description="Informações do médico responsável pela emissão do atestado, incluindo nome, CRM e UF")
+    appointmentTookPlaceIn: AppointmentTookPlaceIn = Field(description="Dados do local onde a consulta foi realizada, incluindo endereço completo")
+
+# ----------------------------------
 # SECTION: STATE DEFINITION
 # ----------------------------------
 class State(MessagesState):
@@ -471,7 +496,6 @@ Lembre-se:
 """
 
 GENERATE_EXAM_REQUEST_PROMPT = """Você é especializado em gerar pedidos de exames estruturados de acordo com o input do usuário (médico).
-
 INPUT DO USUÁRIO:
 {input}
 
@@ -495,6 +519,33 @@ Exemplo de saída válida:
     "consultant" : "Roberta Garcis",
     "clinicalIndication": "Dor retroauricular",
     "request": "Otoscopia bilateral"
+}}"""
+
+GENERATE_MEDICAL_CERTIFICATE_PROMPT = """Você é especializado em gerar atestados médicos estruturados de acordo com o input do usuário (médico).
+
+INPUT DO USUÁRIO:
+{input}
+
+HISTÓRICO DA CONVERSA (se disponível):
+{conversation_history}  
+
+INSTRUÇÕES:
+1. Analise cuidadosamente o INPUT DO USUÁRIO e o HISTÓRICO DA CONVERSA (se disponível)
+2. Para o campo 'consultant': transcreva o nome do paciente providenciado pelo usuário
+3. Para o campo 'period': transcreva APENAS o período de afastamento/repouso indicado pelo médico, sem adicionar detalhes não mencionados
+4. Para o campo 'notes': transcreva APENAS o motivo e detalhes do atestado conforme informado pelo médico, sem elaborações adicionais
+5. Mantenha a linguagem técnica e profissional, apropriada para documentação médica
+6. NÃO INVENTE NENHUMA INFORMAÇÃO que não esteja explicitamente mencionada no input ou histórico
+7. NÃO ADICIONE interpretações clínicas, hipóteses diagnósticas ou sugestões que não foram explicitamente fornecidas
+
+FORMATO DE SAÍDA:
+Sua resposta deve ser EXCLUSIVAMENTE um objeto JSON válido contendo apenas os campos 'consultant', 'period' e 'notes', sem comentários adicionais, explicações ou marcações de código.
+
+Exemplo de saída válida:
+{{
+    "consultant": "Roberto Santos",
+    "period": "7 dias",
+    "notes": "Repouso devido a quadro de síndrome gripal"
 }}"""
 
 # ----------------------------------

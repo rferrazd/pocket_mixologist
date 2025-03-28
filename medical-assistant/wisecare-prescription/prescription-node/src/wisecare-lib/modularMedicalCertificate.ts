@@ -2,7 +2,59 @@ import WiseAPI from 'wise-api';
 import fs from 'fs/promises';
 import { config } from './config';
 
-const main = async () => {
+// Define the medical certificate payload interface
+export interface MedicalCertificatePayload {
+  consultant: string;
+  period: string;
+  notes: string;
+  doctor: {
+    name: string;
+    crm: string;
+    uf: string;
+  };
+  appointmentTookPlaceIn: {
+    name: string;
+    address: string;
+    neighbourhood: string;
+    city: string;
+    uf: string;
+    phone: string;
+  };
+  dateOfEmission?: string;
+}
+
+export interface SkinInfo {
+  images: {
+    logo: string;
+  };
+  colors: {
+    header: string;
+    footer: {
+      primary: string;
+      secondary: string;
+    };
+    title: string;
+    text: {
+      gray100: string;
+      gray200: string;
+      gray300: string;
+      gray400: string;
+      blue: string;
+    };
+    background: string;
+  };
+  links: {
+    validationUrl: string;
+  };
+}
+
+/**
+ * Generate a medical certificate PDF
+ * @param payload The medical certificate data
+ * @param skinInfo Optional skinning configuration for the PDF
+ * @returns Path to the generated PDF
+ */
+export async function generateMedicalCertificate(payload: MedicalCertificatePayload, skinInfo?: SkinInfo): Promise<string> {
   console.log('Lib Initialization');
   const wiseapi = await WiseAPI({
     baseUrl: 'https://session-manager.homolog.v4h.cloud/api/v1',
@@ -11,10 +63,14 @@ const main = async () => {
     password: config.password
   });
 
-
   console.log('Getting local certificates');
   const certificates: any = await wiseapi.prescription.listCertificates();
   if (!certificates.length) throw Error('There are not certificates in this local device');
+
+  // Set date of emission if not provided
+  if (!payload.dateOfEmission) {
+    payload.dateOfEmission = new Date().toLocaleDateString();
+  }
 
   console.log('Creating medical certificate prescription');
   const prescription = await wiseapi.prescription.create({
@@ -23,40 +79,22 @@ const main = async () => {
     user: config.user,
     type: 'MEDICALCERTIFICATE',
     responsableCertificate: certificates[0].base64Certificate,
-    
-      prescription: {
-          certificate: "CERTIFICATE",
-          consultant: "Jose Santos",
-          period: "1 semana",
-          notes: "caiu da escada e faturou o pé",
-          doctor: {
-              name: "Pablo Esposito",
-              crm: "23242",
-              uf: "PB"
-          },
-          appointmentTookPlaceIn: {
-              name: "Duomed",
-              address: "Avenida Epitacio Pessoa, 10",
-              neighbourhood: "Torre",
-              city: "João Pessoa",
-              uf: "PB",
-              phone: "982051591"
-          }, 
-      dateOfEmission: new Date().toLocaleDateString(),
-    }
+    prescription: payload,
+    skinInfo: skinInfo // Include the skinInfo configuration if provided
   });
 
-  console.log('Signing locally, this will open an popup to put certificate password')
+  console.log('Signing locally, this will open an popup to put certificate password');
   const signResponse = await wiseapi.prescription.signLocal(certificates[0].id, prescription.dataToSign);
 
   console.log('Confirming sinature');
   await wiseapi.prescription.sign(String(prescription.id), { signatureValue: signResponse[0].signature });
 
-  console.log('Downloading document')
+  console.log('Downloading document');
   const buffer = await wiseapi.prescription.download(String(prescription.id));
 
-  console.log('Document saved in: ', `output/medical_certificate_${prescription.id}.pdf`)
-  await fs.writeFile(`output/medical_certificate_${prescription.id}.pdf`, buffer);
+  const outputPath = `output/medical_certificate_${prescription.id}.pdf`;
+  console.log('Document saved in: ', outputPath);
+  await fs.writeFile(outputPath, buffer);
+  
+  return outputPath;
 }
-
-main();

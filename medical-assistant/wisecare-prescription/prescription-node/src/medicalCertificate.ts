@@ -17,15 +17,16 @@ const main = async () => {
   if (!certificates.length) throw Error('There are not certificates in this local device');
 
   console.log('Creating medical certificate prescription');
+
   const prescription = await wiseapi.prescription.create({
     org: config.org,
     orgUnit: config.orgUnit,
     user: config.user,
     type: 'MEDICALCERTIFICATE',
+    signatureSource: 'LEDGERSIGN',
     responsableCertificate: certificates[0].base64Certificate,
     
       prescription: {
-          certificate: "CERTIFICATE",
           consultant: "Jose Santos",
           period: "1 semana",
           notes: "caiu da escada e faturou o pé",
