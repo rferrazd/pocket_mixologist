@@ -52,9 +52,14 @@ export interface SkinInfo {
  * Generate a medical certificate PDF
  * @param payload The medical certificate data
  * @param skinInfo Optional skinning configuration for the PDF
+ * @param outputPath Optional output path for the generated PDF
  * @returns Path to the generated PDF
  */
-export async function generateMedicalCertificate(payload: MedicalCertificatePayload, skinInfo?: SkinInfo): Promise<string> {
+export async function generateMedicalCertificate(
+  payload: MedicalCertificatePayload, 
+  skinInfo?: SkinInfo,
+  outputPath?: string
+): Promise<string> {
   console.log('Lib Initialization');
   const wiseapi = await WiseAPI({
     baseUrl: 'https://session-manager.homolog.v4h.cloud/api/v1',
@@ -92,9 +97,10 @@ export async function generateMedicalCertificate(payload: MedicalCertificatePayl
   console.log('Downloading document');
   const buffer = await wiseapi.prescription.download(String(prescription.id));
 
-  const outputPath = `output/medical_certificate_${prescription.id}.pdf`;
-  console.log('Document saved in: ', outputPath);
-  await fs.writeFile(outputPath, buffer);
+  // Use provided output path or create a default one
+  const filePath = outputPath || `output/medical_certificate_${prescription.id}.pdf`;
+  console.log('Document saved in: ', filePath);
+  await fs.writeFile(filePath, buffer);
   
-  return outputPath;
+  return filePath;
 }

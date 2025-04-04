@@ -18,13 +18,15 @@ async function generateMedicalCertificateFromJson(jsonFilePath: string, outputPa
     if (payload.skinInfo) {
       console.log('Using skin info:', JSON.stringify(payload.skinInfo, null, 2));
     }
-    const pdfPath = await generateMedicalCertificate(payload.medicalCertificate, payload.skinInfo);
     
-    // Copy to custom output path if provided
-    if (outputPath) {
-      await fs.copyFile(path.resolve(pdfPath), path.resolve(outputPath));
-      console.log(`Medical certificate PDF copied to ${outputPath}`);
-    }
+    // Pass the output path directly to avoid duplicate file creation
+    const pdfPath = await generateMedicalCertificate(
+      payload.medicalCertificate, 
+      payload.skinInfo,
+      outputPath
+    );
+    
+    console.log(`Medical certificate PDF saved to ${pdfPath}`);
   } catch (error) {
     console.error('Error generating medical certificate:', error);
     process.exit(1);

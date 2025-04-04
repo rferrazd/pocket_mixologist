@@ -52,9 +52,15 @@ export interface SkinInfo {
 /**
  * Generate an exam request PDF
  * @param payload The exam request data
+ * @param skinInfo Optional skinning configuration for the PDF
+ * @param outputPath Optional output path for the generated PDF
  * @returns Path to the generated PDF
  */
-export async function generateExamRequest(payload: ExamRequestPayload, skinInfo?: SkinInfo): Promise<string> {
+export async function generateExamRequest(
+  payload: ExamRequestPayload, 
+  skinInfo?: SkinInfo,
+  outputPath?: string
+): Promise<string> {
   console.log('Lib Initialization');
   const wiseapi = await WiseAPI({
     baseUrl: 'https://session-manager.homolog.v4h.cloud/api/v1',
@@ -92,9 +98,10 @@ export async function generateExamRequest(payload: ExamRequestPayload, skinInfo?
   console.log('Downloading document');
   const buffer = await wiseapi.prescription.download(String(prescription.id));
 
-  const outputPath = `output/exam_request_${prescription.id}.pdf`;
-  console.log('Document saved in: ', outputPath);
-  await fs.writeFile(outputPath, buffer);
+  // Use provided output path or create a default one
+  const filePath = outputPath || `output/exam_request_${prescription.id}.pdf`;
+  console.log('Document saved in: ', filePath);
+  await fs.writeFile(filePath, buffer);
   
-  return outputPath;
+  return filePath;
 }

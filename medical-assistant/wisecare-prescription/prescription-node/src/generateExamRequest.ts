@@ -18,13 +18,15 @@ async function generateExamRequestFromJson(jsonFilePath: string, outputPath?: st
     if (payload.skinInfo) {
       console.log('Using skin info:', JSON.stringify(payload.skinInfo, null, 2));
     }
-    const pdfPath = await generateExamRequest(payload.examRequest, payload.skinInfo);
     
-    // Copy to custom output path if provided
-    if (outputPath) {
-      await fs.copyFile(path.resolve(pdfPath), path.resolve(outputPath));
-      console.log(`Exam request PDF copied to ${outputPath}`);
-    }
+    // Pass the output path directly to avoid duplicate file creation
+    const pdfPath = await generateExamRequest(
+      payload.examRequest, 
+      payload.skinInfo,
+      outputPath
+    );
+    
+    console.log(`Exam request PDF saved to ${pdfPath}`);
   } catch (error) {
     console.error('Error generating exam request:', error);
     process.exit(1);

@@ -18,13 +18,15 @@ async function generatePrescriptionFromJson(jsonFilePath: string, outputPath?: s
     if (payload.skinInfo) {
       console.log('Using skin info:', JSON.stringify(payload.skinInfo, null, 2));
     }
-    const pdfPath = await generatePrescription(payload.prescription, payload.skinInfo);
     
-    // Copy to custom output path if provided
-    if (outputPath) {
-      await fs.copyFile(path.resolve(pdfPath), path.resolve(outputPath));
-      console.log(`Prescription PDF copied to ${outputPath}`);
-    }
+    // Pass the output path directly to avoid duplicate file creation
+    const pdfPath = await generatePrescription(
+      payload.prescription, 
+      payload.skinInfo,
+      outputPath
+    );
+    
+    console.log(`Prescription PDF saved to ${pdfPath}`);
   } catch (error) {
     console.error('Error generating prescription:', error);
     process.exit(1);
