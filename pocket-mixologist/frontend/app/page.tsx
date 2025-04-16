@@ -134,19 +134,22 @@ function Particles() {
     const canvas = canvasRef.current
     if (!canvas) return
 
-    const ctx = canvas.getContext("2d")
+    // Create a typed reference that TypeScript knows is non-null
+    const safeCanvas: HTMLCanvasElement = canvas
+
+    const ctx = safeCanvas.getContext("2d")
     if (!ctx) return
 
     // Set canvas dimensions
     const setCanvasDimensions = () => {
-      canvas.width = window.innerWidth
-      canvas.height = window.innerHeight
+      safeCanvas.width = window.innerWidth
+      safeCanvas.height = window.innerHeight
     }
 
     setCanvasDimensions()
     window.addEventListener("resize", setCanvasDimensions)
 
-    // Particle class
+    // Define Particle class INSIDE the effect to ensure it has access to the validated canvas
     class Particle {
       x: number
       y: number
@@ -156,8 +159,9 @@ function Particles() {
       color: string
 
       constructor() {
-        this.x = Math.random() * canvas.width
-        this.y = Math.random() * canvas.height
+        // Using safeCanvas which is guaranteed to be non-null
+        this.x = Math.random() * safeCanvas.width
+        this.y = Math.random() * safeCanvas.height
         this.size = Math.random() * 3 + 1
         this.speedX = Math.random() * 0.5 - 0.25
         this.speedY = Math.random() * 0.5 - 0.25
@@ -171,11 +175,11 @@ function Particles() {
         this.x += this.speedX
         this.y += this.speedY
 
-        if (this.x > canvas.width) this.x = 0
-        else if (this.x < 0) this.x = canvas.width
+        if (this.x > safeCanvas.width) this.x = 0
+        else if (this.x < 0) this.x = safeCanvas.width
 
-        if (this.y > canvas.height) this.y = 0
-        else if (this.y < 0) this.y = canvas.height
+        if (this.y > safeCanvas.height) this.y = 0
+        else if (this.y < 0) this.y = safeCanvas.height
       }
 
       draw() {
@@ -197,7 +201,7 @@ function Particles() {
 
     // Animation loop
     const animate = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
+      ctx.clearRect(0, 0, safeCanvas.width, safeCanvas.height)
 
       for (let i = 0; i < particlesArray.length; i++) {
         particlesArray[i].update()
