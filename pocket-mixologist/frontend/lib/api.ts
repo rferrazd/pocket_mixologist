@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ; //|| 'http://localhost:8000';
+console.log("THIS IS THE API_BASE_URL: ", API_BASE_URL)
 export interface ApiConfig {
   configurable: {
     thread_id: string;
@@ -28,6 +28,7 @@ export interface SendMessageResponse {
  */
 export async function startConversation(): Promise<StartConversationResponse> {
   try {
+    console.log("TRYING TO START A CONVERSATION")
     const response = await axios.post<StartConversationResponse>(
       `${API_BASE_URL}/api/start-conversation`
     );

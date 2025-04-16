@@ -5,7 +5,7 @@
       "graphs": {
           "agent": "./src/agent/agent.ts:agent"
       },
-      "env":  "./.env",
+      "env":  "../../.env",
       "node_version": "20",
       "dockerfile_lines": [
           "RUN npm install -g tsx",

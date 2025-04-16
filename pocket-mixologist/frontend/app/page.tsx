@@ -12,8 +12,9 @@ export default function LandingPage() {
   const handleStartConversation = async () => {
     try {
       // Start a conversation with the cocktail agent
+      console.log("INSIDE handleStartConversation")
       const response = await startConversation();
-      
+      console.log("RESPONSE FROM startConversation()", response)
       // Store the initial agent response and config in session storage
       sessionStorage.setItem('agentInitialResponse', response.agent_response);
       sessionStorage.setItem('agentConfig', JSON.stringify(response.config));

@@ -2,6 +2,8 @@
 my.env
 .env
 .env.*
+.env.local
+.env.*.local
 
 # Virtual Environment
 myvenv/
@@ -30,12 +32,25 @@ wheels/
 .installed.cfg
 *.egg
 
+# Node.js dependencies
+node_modules/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
 # Editors
 .idea/
 .vscode/
 *.swp
 *.swo
 *~
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
 
 # OS specific
 .DS_Store
@@ -46,5 +61,8 @@ wheels/
 ehthumbs.db
 Thumbs.db 
 
-# keys
+# Keys
 streamlit_app/.streamlit/secrets.toml
+
+# LangGraph API
+.langgraph_api

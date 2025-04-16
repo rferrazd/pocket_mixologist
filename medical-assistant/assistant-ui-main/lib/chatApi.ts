@@ -6,7 +6,7 @@ let clientInstance: Client | null = null
 const createClient = (): Client => {
   if (!clientInstance) {
     const apiUrl =
-      process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000/api'
+      process.env.NEXT_PUBLIC_LANGGRAPH_API_URL ?? 'http://localhost:2024'
     clientInstance = new Client({ apiUrl })
   }
   return clientInstance

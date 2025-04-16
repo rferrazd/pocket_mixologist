@@ -30,9 +30,14 @@ try:
     from langgraph.types import Command
     logger.info("Successfully imported cocktail_agent module")
 except ImportError as e:
-    # Let's try an absolute import
+    # Absolute imports
     try:
+        
         sys.path.append('/Users/robertagarcia/Desktop/learning/LangGraph/langgraph_personal/NodeInterrupt')
+        # CHANGE THE LINE ABOVE TO THE FOLLOWING:
+        # project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        # sys.path.append(project_root)
+        
         from cocktail_agent import compile_agent, start_agent
         from langgraph.types import Command
         logger.info("Successfully imported cocktail_agent module using absolute path")
