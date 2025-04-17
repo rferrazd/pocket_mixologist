@@ -6,7 +6,8 @@
  * but using LangGraph.js and LangChain.js.
  * 
  * The .env file should be located in the NodeInterrupt directory.
- */
+ * Use the following command to run this project on the LangGraph studio: npx @langchain/langgraph-cli dev
+*/
 
 import path from 'path';
 import { fileURLToPath } from 'url';
